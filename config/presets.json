@@ -1,0 +1,91 @@
+{
+  "container_images": [
+    {
+      "name": "vLLM Ascend v0.13.0rc1",
+      "image": "quay.io/ascend/vllm-ascend:v0.13.0rc1"
+    },
+    {
+      "name": "vLLM Ascend v0.12.0",
+      "image": "quay.io/ascend/vllm-ascend:v0.12.0"
+    },
+    {
+      "name": "vLLM Ascend Latest",
+      "image": "quay.io/ascend/vllm-ascend:latest"
+    }
+  ],
+  "model_paths": [
+    "/data2/weights",
+    "/data/weights"
+  ],
+  "popular_models": [
+    {
+      "id": "Qwen/Qwen3-0.6B",
+      "name": "Qwen3-0.6B",
+      "size": "0.6B"
+    },
+    {
+      "id": "Qwen/Qwen3-4B",
+      "name": "Qwen3-4B",
+      "size": "4B"
+    },
+    {
+      "id": "Qwen/Qwen3-8B",
+      "name": "Qwen3-8B",
+      "size": "8B"
+    },
+    {
+      "id": "Qwen/Qwen3-32B",
+      "name": "Qwen3-32B",
+      "size": "32B"
+    },
+    {
+      "id": "Qwen/Qwen2.5-72B-Instruct",
+      "name": "Qwen2.5-72B-Instruct",
+      "size": "72B"
+    }
+  ],
+  "benchmark_templates": [
+    {
+      "name": "Quick Test",
+      "description": "Fast validation",
+      "type": "evalscope",
+      "parallel": 1,
+      "number": 5
+    },
+    {
+      "name": "Standard Test",
+      "description": "Standard benchmark",
+      "type": "evalscope",
+      "parallel": 4,
+      "number": 50
+    },
+    {
+      "name": "Stress Test",
+      "description": "High concurrency",
+      "type": "evalscope",
+      "parallel": 16,
+      "number": 100
+    },
+    {
+      "name": "Long Context",
+      "description": "Long context test",
+      "type": "vllm_bench",
+      "input_len": 4096,
+      "output_len": 2048
+    },
+    {
+      "name": "Throughput",
+      "description": "Max throughput test",
+      "type": "vllm_bench",
+      "request_rate": 100,
+      "concurrency": 64
+    }
+  ],
+  "default_vllm_config": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "tensor_parallel_size": 1,
+    "dtype": "auto",
+    "trust_remote_code": true
+  }
+}
