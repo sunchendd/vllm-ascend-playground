@@ -336,7 +336,7 @@ function initNpuSelector() {
     npuSelector.innerHTML = '';
     modalNpuSelector.innerHTML = '';
     
-    for (let i = 0; i < 8; i++) { // Assuming 8 NPUs max for now, or 16
+    for (let i = 0; i < 16; i++) { // Assuming 8 NPUs max for now, or 16
         // Main Config Selector
         const div = document.createElement('div');
         div.className = 'npu-checkbox' + (selectedNpuDevices.includes(i) ? ' selected' : '');
