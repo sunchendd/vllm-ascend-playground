@@ -597,7 +597,10 @@ function onLogSourceChange() {
         // 填充容器列表
         containerSelect.innerHTML = '<option value="">选择容器...</option>';
         allContainers.filter(c => c.status === 'running').forEach(c => {
-            containerSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            const option = document.createElement('option');
+            option.value = c.name;
+            option.textContent = c.name;
+            containerSelect.appendChild(option);
         });
     } else {
         containerSelect.style.display = 'none';
