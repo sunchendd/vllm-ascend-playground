@@ -120,12 +120,6 @@
                         <p class="placeholder">暂无运行中的服务</p>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>🚀 运行中的服务 <span id="running-service-count" class="badge">0</span></h3>
-                    <div id="services-list">
-                        <p class="placeholder">暂无运行中的服务</p>
-                    </div>
-                </div>
             </section>
             
             <!-- 性能测试 -->
@@ -204,35 +198,6 @@
     </div>
     
     <!-- 创建容器模态框 -->
-    <!-- 下载镜像模态框 -->
-    <div id="pull-image-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>下载容器镜像</h3><button class="close-btn" onclick="closeModal('pull-image-modal')">&times;</button></div>
-            <form id="pull-image-form" onsubmit="pullImage(event)">
-                <div class="form-group">
-                    <label>镜像地址</label>
-                    <input type="text" id="pull-image-name" placeholder="例如: quay.io/ascend/vllm-ascend:v0.13.0rc1" required>
-                </div>
-                <div class="form-group">
-                    <label>常用镜像</label>
-                    <div class="quick-images">
-                        <button type="button" class="btn btn-sm btn-outline" onclick="setImageName('quay.io/ascend/vllm-ascend:v0.13.0rc1')">vllm-ascend v0.13.0rc1</button>
-                        <button type="button" class="btn btn-sm btn-outline" onclick="setImageName('quay.io/ascend/vllm-ascend:v0.12.0rc1')">vllm-ascend v0.12.0rc1</button>
-                        <button type="button" class="btn btn-sm btn-outline" onclick="setImageName('quay.io/ascend/vllm-ascend:v0.11.0rc2')">vllm-ascend v0.11.0rc2</button>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('pull-image-modal')">取消</button>
-                    <button type="submit" class="btn btn-primary" id="pull-image-btn">📥 开始下载</button>
-                </div>
-            </form>
-            <div id="pull-progress" style="display:none; margin-top: 15px;">
-                <div class="progress-bar"><div class="progress-fill" style="width: 0%"></div></div>
-                <p id="pull-status" style="text-align: center; margin-top: 10px;">正在下载...</p>
-            </div>
-        </div>
-    </div>
-    
     <!-- 下载镜像模态框 -->
     <div id="pull-image-modal" class="modal">
         <div class="modal-content">
