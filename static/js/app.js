@@ -821,23 +821,38 @@ function renderServices() {
         detailsDiv.className = 'service-details';
         
         const processDiv = document.createElement('div');
-        processDiv.innerHTML = '<strong>进程:</strong> ' + (service.process_name || 'vLLM');
+        const processLabel = document.createElement('strong');
+        processLabel.textContent = '进程:';
+        processDiv.appendChild(processLabel);
+        processDiv.appendChild(document.createTextNode(' ' + (service.process_name || 'vLLM')));
         detailsDiv.appendChild(processDiv);
         
         const portDiv = document.createElement('div');
-        portDiv.innerHTML = '<strong>端口:</strong> ' + service.port;
+        const portLabel = document.createElement('strong');
+        portLabel.textContent = '端口:';
+        portDiv.appendChild(portLabel);
+        portDiv.appendChild(document.createTextNode(' ' + service.port));
         detailsDiv.appendChild(portDiv);
         
         const pidDiv = document.createElement('div');
-        pidDiv.innerHTML = '<strong>PID:</strong> ' + service.pid;
+        const pidLabel = document.createElement('strong');
+        pidLabel.textContent = 'PID:';
+        pidDiv.appendChild(pidLabel);
+        pidDiv.appendChild(document.createTextNode(' ' + service.pid));
         detailsDiv.appendChild(pidDiv);
         
         const npuDiv = document.createElement('div');
-        npuDiv.innerHTML = '<strong>NPU:</strong> ' + npuDevices;
+        const npuLabel = document.createElement('strong');
+        npuLabel.textContent = 'NPU:';
+        npuDiv.appendChild(npuLabel);
+        npuDiv.appendChild(document.createTextNode(' ' + npuDevices));
         detailsDiv.appendChild(npuDiv);
         
         const memDiv = document.createElement('div');
-        memDiv.innerHTML = '<strong>显存:</strong> ' + memoryMB;
+        const memLabel = document.createElement('strong');
+        memLabel.textContent = '显存:';
+        memDiv.appendChild(memLabel);
+        memDiv.appendChild(document.createTextNode(' ' + memoryMB));
         detailsDiv.appendChild(memDiv);
         
         infoDiv.appendChild(detailsDiv);
