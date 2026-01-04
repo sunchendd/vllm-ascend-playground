@@ -47,7 +47,7 @@ function initForms() {
         document.querySelector('.vllm-bench-params').style.display = e.target.value === 'vllm_bench' ? 'contents' : 'none';
     });
     document.getElementById('create-container-form').addEventListener('submit', createContainer);
-    document.getElementById('download-model-form').addEventListener('submit', downloadModel);
+    // Note: download-model form uses inline onsubmit handler in HTML
     document.querySelectorAll('.model-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.model-tab').forEach(t => t.classList.remove('active'));
