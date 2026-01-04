@@ -56,6 +56,64 @@ function initForms() {
             refreshModels();
         });
     });
+    
+    // Event delegation for container action buttons
+    document.getElementById('containers-table').addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-action]');
+        if (!button) return;
+        
+        const action = button.dataset.action;
+        const containerName = button.dataset.containerName;
+        
+        if (action === 'start') {
+            startContainer(containerName);
+        } else if (action === 'stop') {
+            stopContainer(containerName);
+        } else if (action === 'delete') {
+            deleteContainer(containerName);
+        }
+    });
+    
+    // Event delegation for model action buttons
+    document.getElementById('models-list').addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-action]');
+        if (!button) return;
+        
+        const action = button.dataset.action;
+        const modelPath = button.dataset.modelPath;
+        const sourceType = button.dataset.sourceType;
+        
+        if (action === 'use') {
+            useModel(modelPath, sourceType);
+        } else if (action === 'download') {
+            downloadModelById(modelPath);
+        }
+    });
+    
+    // Event delegation for benchmark history buttons
+    document.getElementById('benchmark-history').addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-action]');
+        if (!button) return;
+        
+        if (button.dataset.action === 'view') {
+            try {
+                const result = JSON.parse(button.dataset.result);
+                displayBenchmarkResults(result);
+            } catch (error) {
+                console.error('Failed to parse benchmark result:', error);
+            }
+        }
+    });
+    
+    // Event delegation for service action buttons
+    document.getElementById('services-list').addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-action]');
+        if (!button) return;
+        
+        if (button.dataset.action === 'kill') {
+            killVllmService(button.dataset.containerName, button.dataset.pid);
+        }
+    });
 }
 
 function initNpuSelector() {
@@ -255,11 +313,63 @@ function renderModels() {
     models.forEach(model => {
         const card = document.createElement('div'); 
         card.className = 'model-card';
+        
+        const title = document.createElement('h4');
+        title.textContent = model.name;
+        card.appendChild(title);
+        
+        const metaDiv = document.createElement('div');
+        metaDiv.className = 'model-meta';
+        
         if (currentModelSource === 'popular') {
-            card.innerHTML = '<h4>' + model.name + '</h4><div class="model-meta"><div>ID: ' + model.id + '</div><div>参数量: ' + model.size + '</div></div><div class="model-actions"><button class="btn btn-sm btn-primary" onclick="downloadModelById(\'' + model.id + '\')">下载</button><button class="btn btn-sm btn-secondary" onclick="useModel(\'' + model.id + '\', \'modelscope\')">使用</button></div>';
+            const idDiv = document.createElement('div');
+            idDiv.textContent = 'ID: ' + model.id;
+            metaDiv.appendChild(idDiv);
+            
+            const sizeDiv = document.createElement('div');
+            sizeDiv.textContent = '参数量: ' + model.size;
+            metaDiv.appendChild(sizeDiv);
         } else {
-            card.innerHTML = '<h4>' + model.name + '</h4><div class="model-meta"><div>路径: ' + model.path + '</div><div>大小: ' + model.size_human + '</div></div><div class="model-actions"><button class="btn btn-sm btn-primary" onclick="useModel(\'' + model.path + '\', \'local\')">使用</button></div>';
+            const pathDiv = document.createElement('div');
+            pathDiv.textContent = '路径: ' + model.path;
+            metaDiv.appendChild(pathDiv);
+            
+            const sizeDiv = document.createElement('div');
+            sizeDiv.textContent = '大小: ' + model.size_human;
+            metaDiv.appendChild(sizeDiv);
         }
+        
+        card.appendChild(metaDiv);
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'model-actions';
+        
+        if (currentModelSource === 'popular') {
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'btn btn-sm btn-primary';
+            downloadBtn.textContent = '下载';
+            downloadBtn.dataset.action = 'download';
+            downloadBtn.dataset.modelPath = model.id;
+            actionsDiv.appendChild(downloadBtn);
+            
+            const useBtn = document.createElement('button');
+            useBtn.className = 'btn btn-sm btn-secondary';
+            useBtn.textContent = '使用';
+            useBtn.dataset.action = 'use';
+            useBtn.dataset.modelPath = model.id;
+            useBtn.dataset.sourceType = 'modelscope';
+            actionsDiv.appendChild(useBtn);
+        } else {
+            const useBtn = document.createElement('button');
+            useBtn.className = 'btn btn-sm btn-primary';
+            useBtn.textContent = '使用';
+            useBtn.dataset.action = 'use';
+            useBtn.dataset.modelPath = model.path;
+            useBtn.dataset.sourceType = 'local';
+            actionsDiv.appendChild(useBtn);
+        }
+        
+        card.appendChild(actionsDiv);
         container.appendChild(card);
     });
 }
@@ -401,7 +511,36 @@ async function loadBenchmarkHistory() {
         if (!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="placeholder">No records</td></tr>'; return; }
         data.slice().reverse().forEach(result => {
             const tr = document.createElement('tr');
-            tr.innerHTML = '<td>' + new Date(result.timestamp).toLocaleString() + '</td><td>' + result.benchmark_type + '</td><td>' + (result.throughput ? result.throughput.toFixed(2) : 'N/A') + '</td><td>' + (result.avg_latency ? result.avg_latency.toFixed(2) : 'N/A') + '</td><td>' + (result.p99_latency ? result.p99_latency.toFixed(2) : 'N/A') + '</td><td><button class="btn btn-secondary" onclick=\'displayBenchmarkResults(' + JSON.stringify(result) + ')\'>View</button></td>';
+            
+            const timeCell = document.createElement('td');
+            timeCell.textContent = new Date(result.timestamp).toLocaleString();
+            tr.appendChild(timeCell);
+            
+            const typeCell = document.createElement('td');
+            typeCell.textContent = result.benchmark_type;
+            tr.appendChild(typeCell);
+            
+            const throughputCell = document.createElement('td');
+            throughputCell.textContent = result.throughput ? result.throughput.toFixed(2) : 'N/A';
+            tr.appendChild(throughputCell);
+            
+            const avgLatencyCell = document.createElement('td');
+            avgLatencyCell.textContent = result.avg_latency ? result.avg_latency.toFixed(2) : 'N/A';
+            tr.appendChild(avgLatencyCell);
+            
+            const p99LatencyCell = document.createElement('td');
+            p99LatencyCell.textContent = result.p99_latency ? result.p99_latency.toFixed(2) : 'N/A';
+            tr.appendChild(p99LatencyCell);
+            
+            const actionCell = document.createElement('td');
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn btn-secondary';
+            viewBtn.textContent = 'View';
+            viewBtn.dataset.action = 'view';
+            viewBtn.dataset.result = JSON.stringify(result);
+            actionCell.appendChild(viewBtn);
+            tr.appendChild(actionCell);
+            
             tbody.appendChild(tr);
         });
     } catch (error) { console.error('Failed to load benchmark history:', error); }
@@ -544,8 +683,61 @@ function renderContainers() {
     
     filtered.forEach(container => {
         const tr = document.createElement('tr');
-        tr.innerHTML = '<td>' + container.name + '</td><td class="image-cell" title="' + container.image + '">' + container.image + '</td><td><span class="status-tag ' + (container.running ? 'running' : 'stopped') + '">' + (container.running ? '运行中' : '已停止') + '</span></td><td>' + container.created + '</td><td>' + (container.running ? '<button class="btn btn-sm btn-secondary" onclick="stopContainer(\'' + container.name + '\')">停止</button>' : '<button class="btn btn-sm btn-primary" onclick="startContainer(\'' + container.name + '\')">启动</button>') + ' <button class="btn btn-sm btn-danger" onclick="deleteContainer(\'' + container.name + '\')">删除</button></td>';
+        
+        // Create cells
+        const nameCell = document.createElement('td');
+        nameCell.textContent = container.name;
+        
+        const imageCell = document.createElement('td');
+        imageCell.className = 'image-cell';
+        imageCell.title = container.image;
+        imageCell.textContent = container.image;
+        
+        const statusCell = document.createElement('td');
+        const statusTag = document.createElement('span');
+        statusTag.className = 'status-tag ' + (container.running ? 'running' : 'stopped');
+        statusTag.textContent = container.running ? '运行中' : '已停止';
+        statusCell.appendChild(statusTag);
+        
+        const createdCell = document.createElement('td');
+        createdCell.textContent = container.created;
+        
+        const actionsCell = document.createElement('td');
+        
+        // Create start/stop button
+        if (container.running) {
+            const stopBtn = document.createElement('button');
+            stopBtn.className = 'btn btn-sm btn-secondary';
+            stopBtn.textContent = '停止';
+            stopBtn.dataset.containerName = container.name;
+            stopBtn.dataset.action = 'stop';
+            actionsCell.appendChild(stopBtn);
+        } else {
+            const startBtn = document.createElement('button');
+            startBtn.className = 'btn btn-sm btn-primary';
+            startBtn.textContent = '启动';
+            startBtn.dataset.containerName = container.name;
+            startBtn.dataset.action = 'start';
+            actionsCell.appendChild(startBtn);
+        }
+        
+        actionsCell.appendChild(document.createTextNode(' '));
+        
+        // Create delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-sm btn-danger';
+        deleteBtn.textContent = '删除';
+        deleteBtn.dataset.containerName = container.name;
+        deleteBtn.dataset.action = 'delete';
+        actionsCell.appendChild(deleteBtn);
+        
+        tr.appendChild(nameCell);
+        tr.appendChild(imageCell);
+        tr.appendChild(statusCell);
+        tr.appendChild(createdCell);
+        tr.appendChild(actionsCell);
         tbody.appendChild(tr);
+        
         if (container.running) {
             const option = document.createElement('option');
             option.value = container.name;
@@ -595,31 +787,73 @@ function renderServices() {
         return;
     }
     
-    container.innerHTML = allServices.map(service => {
+    container.innerHTML = '';
+    
+    allServices.forEach(service => {
         const npuDevices = service.npu_devices ? service.npu_devices.join(', ') : '';
         const memoryMB = service.memory_mb ? (service.memory_mb / 1024).toFixed(1) + ' GB' : 'N/A';
         
-        return `
-            <div class="service-item">
-                <div class="service-info">
-                    <div class="service-header">
-                        <span class="service-id">🟢 ${service.container}</span>
-                        <span class="badge badge-success">运行中</span>
-                    </div>
-                    <div class="service-details">
-                        <div><strong>进程:</strong> ${service.process_name || 'vLLM'}</div>
-                        <div><strong>端口:</strong> ${service.port}</div>
-                        <div><strong>PID:</strong> ${service.pid}</div>
-                        <div><strong>NPU:</strong> ${npuDevices}</div>
-                        <div><strong>显存:</strong> ${memoryMB}</div>
-                    </div>
-                </div>
-                <div class="service-actions">
-                    <button class="btn btn-danger btn-sm" onclick="killVllmService('${service.container}', '${service.pid}')">⏹ 停止</button>
-                </div>
-            </div>
-        `;
-    }).join('');
+        const serviceDiv = document.createElement('div');
+        serviceDiv.className = 'service-item';
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'service-info';
+        
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'service-header';
+        
+        const idSpan = document.createElement('span');
+        idSpan.className = 'service-id';
+        idSpan.textContent = '🟢 ' + service.container;
+        headerDiv.appendChild(idSpan);
+        
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-success';
+        badge.textContent = '运行中';
+        headerDiv.appendChild(badge);
+        
+        infoDiv.appendChild(headerDiv);
+        
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'service-details';
+        
+        const processDiv = document.createElement('div');
+        processDiv.innerHTML = '<strong>进程:</strong> ' + (service.process_name || 'vLLM');
+        detailsDiv.appendChild(processDiv);
+        
+        const portDiv = document.createElement('div');
+        portDiv.innerHTML = '<strong>端口:</strong> ' + service.port;
+        detailsDiv.appendChild(portDiv);
+        
+        const pidDiv = document.createElement('div');
+        pidDiv.innerHTML = '<strong>PID:</strong> ' + service.pid;
+        detailsDiv.appendChild(pidDiv);
+        
+        const npuDiv = document.createElement('div');
+        npuDiv.innerHTML = '<strong>NPU:</strong> ' + npuDevices;
+        detailsDiv.appendChild(npuDiv);
+        
+        const memDiv = document.createElement('div');
+        memDiv.innerHTML = '<strong>显存:</strong> ' + memoryMB;
+        detailsDiv.appendChild(memDiv);
+        
+        infoDiv.appendChild(detailsDiv);
+        serviceDiv.appendChild(infoDiv);
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'service-actions';
+        
+        const stopBtn = document.createElement('button');
+        stopBtn.className = 'btn btn-danger btn-sm';
+        stopBtn.textContent = '⏹ 停止';
+        stopBtn.dataset.action = 'kill';
+        stopBtn.dataset.containerName = service.container;
+        stopBtn.dataset.pid = service.pid;
+        actionsDiv.appendChild(stopBtn);
+        
+        serviceDiv.appendChild(actionsDiv);
+        container.appendChild(serviceDiv);
+    });
 }
 
 async function killVllmService(containerName, pid) {
